@@ -4,8 +4,34 @@ const mysqlConnection = new MySQLConnection(require('./database/dbConfig'));
 let jsonInput = require('./input/allInput');
 
 async function connectDB() {
-  await mysqlConnection.connect();
+
+  if (process.env.NODE_ENV.toString() == "dev".toString()) {
+    await mysqlConnection.connect();
+    console.log("DB connection successful in ENV", process.env.NODE_ENV)
+  } else {
+    console.log("DB connection skipped in ENV", process.env.NODE_ENV)
+  }
 }
+
+async function executeQuery(functionName, query) {
+  return new Promise(async (resolve, reject) => {
+    if (process.env.NODE_ENV.toString() == "dev".toString()) {
+      try {
+        const queryResult = await mysqlConnection.query(query);
+        console.log(process.env.NODE_ENV, 'Query Result of ' + functionName + ':' + query);
+        console.log(queryResult.results)
+        resolve(queryResult.results)
+      } catch (error) {
+        reject(error)
+      }
+
+    } else {
+      resolve('Query  ' + functionName + ' : ' + query)
+      console.log(process.env.NODE_ENV, 'Query ' + functionName + ' : ' + query);
+    }
+  })
+}
+
 
 async function equal() {
   try {
@@ -13,8 +39,7 @@ async function equal() {
     queryBuilder.conditions = jsonInput.equal_condition;
     queryBuilder.addTable('table1').addSelect("age,name");
     const query = queryBuilder.build();
-    const queryResult = await mysqlConnection.query(query);
-    console.log('Query Result of equal:' + query, queryResult.results);
+    await executeQuery("equal", query)
   } catch (error) {
     console.log(error)
   }
@@ -25,8 +50,7 @@ async function inCondition() {
     queryBuilder.conditions = jsonInput.in_condition;
     queryBuilder.addTable('table1').addSelect("age,name");;
     const query = queryBuilder.build();
-    const queryResult = await mysqlConnection.query(query);
-    console.log('Query Result of IN:' + query, queryResult.results);
+    await executeQuery("inCondition", query)
   } catch (error) {
     console.log(error)
   }
@@ -38,8 +62,7 @@ async function likeCondition() {
     queryBuilder.conditions = jsonInput.like_condition;
     queryBuilder.addTable('table1');
     const query = queryBuilder.build();
-    const queryResult = await mysqlConnection.query(query);
-    console.log('Query Result of LIKE:' + query, queryResult.results);
+    await executeQuery("likeCondition", query)
   } catch (error) {
     console.log(error)
   }
@@ -51,8 +74,7 @@ async function gteCondition() {
     queryBuilder.conditions = jsonInput.greater_than_equal_condition;
     queryBuilder.addTable('table1');
     const query = queryBuilder.build();
-    const queryResult = await mysqlConnection.query(query);
-    console.log('Query Result of greater_than_equal_condition:' + query, queryResult.results);
+    await executeQuery("gteCondition", query)
   } catch (error) {
     console.log(error)
   }
@@ -65,8 +87,7 @@ async function lteCondition() {
     queryBuilder.conditions = jsonInput.less_than_equal_condition;
     queryBuilder.addTable('table1');
     const query = queryBuilder.build();
-    const queryResult = await mysqlConnection.query(query);
-    console.log('Query Result of less_than_equal_condition:' + query, queryResult.results);
+    await executeQuery("lteCondition", query)
   } catch (error) {
     console.log(error)
   }
@@ -79,8 +100,7 @@ async function betweenCondition() {
     queryBuilder.addTable('table1');
     queryBuilder.addJoin('INNER', 'table2', 'table1.id = table2.id')
     const query = queryBuilder.build();
-    const queryResult = await mysqlConnection.query(query);
-    console.log('Query Result of between_condition:' + query, queryResult.results);
+    await executeQuery("betweenCondition", query)
   } catch (error) {
     console.log(error)
   }
@@ -94,8 +114,7 @@ async function join() {
     queryBuilder.addTable('table1')
       .addJoin('INNER', 'table2', 'table1.id = table2.id')
     const query = queryBuilder.build();
-    const queryResult = await mysqlConnection.query(query);
-    console.log('Query Result of join: ' + query, queryResult.results);
+    await executeQuery("join", query)
   } catch (error) {
     console.log(error)
   }
@@ -114,8 +133,7 @@ async function subquery() {
     queryBuilder.addTable('table1')
       .addJoin('INNER', 'table2', 'table1.id = table2.id')
     const query = queryBuilder.build();
-    const queryResult = await mysqlConnection.query(query);
-    console.log('Query Result of Subquery: ' + query, queryResult.results);
+    await executeQuery("subquery", query)
   } catch (error) {
     console.log(error)
   }
